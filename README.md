@@ -4,11 +4,11 @@ Interface do Praticom, um ERP de gestão condominial, dividida em **microfronten
 
 | | Endereço |
 |---|---|
-| 🌐 **Site publicado (Azure Storage, site estático)** | https://SEU-SITE.z1.web.core.windows.net |
-| 🔀 Gateway/BFF (Swagger) | https://SEU-GATEWAY.azurewebsites.net/docs |
+| 🌐 **Site publicado (Azure Storage, site estático)** | https://praticomfrontdd687f.z1.web.core.windows.net |
+| 🔀 Gateway/BFF (Swagger) | https://praticom-gateway-dd687f.azurewebsites.net/docs |
 | 🎥 Vídeo de apresentação (YouTube, não listado) | https://youtu.be/SEU-VIDEO |
-| 📦 Repositório do Gateway/BFF | https://github.com/SEU-USUARIO/praticom-gateway-bff |
-| 📦 Repositório dos microsserviços | https://github.com/SEU-USUARIO/praticom-backend |
+| 📦 Repositório do Gateway/BFF | https://github.com/JapaBKS/praticom-gateway-bff |
+| 📦 Repositório dos microsserviços | https://github.com/JapaBKS/praticom-backend |
 
 **Alunos:** veja [GRUPO.md](GRUPO.md).
 
@@ -68,7 +68,7 @@ O enunciado permite publicar no Azure Static Web Apps ou numa Conta de Armazenam
 1. No portal, abra a conta de armazenamento, vá em *Segurança + rede > Chaves de acesso* e copie a **cadeia de conexão**.
 2. No GitHub, abra *Settings > Secrets and variables > Actions* e cadastre:
    - secret `AZURE_STORAGE_CONNECTION_STRING` = a cadeia de conexão;
-   - variable `VITE_API_URL` = `https://SEU-GATEWAY.azurewebsites.net/api`.
+   - variable `VITE_API_URL` = `https://praticom-gateway-dd687f.azurewebsites.net/api`.
 3. Faça push. Sem o secret, o workflow só roda os testes e o build.
 
 O `remoteEntry.js` de cada remote é enviado com `Cache-Control: no-cache`, para o shell sempre carregar a versão mais nova.
