@@ -1,0 +1,21 @@
+{
+  "name": "praticom-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Microfrontends do Praticom (React + Vite + Module Federation): shell + Mercadinho + Financeiro",
+  "type": "module",
+  "workspaces": [
+    "shell",
+    "mfe-market",
+    "mfe-finance"
+  ],
+  "scripts": {
+    "build": "npm run build -w shell && npm run build -w mfe-market && npm run build -w mfe-finance",
+    "preview": "npm run preview -w shell",
+    "start": "npm run build && npm run preview",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
