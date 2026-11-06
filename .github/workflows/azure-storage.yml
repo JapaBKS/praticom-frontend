@@ -1,0 +1,38 @@
+# Testa, gera o build (shell + 2 remotes em dist/) e publica no site estático da Conta de Armazenamento.
+# Configure no GitHub: Settings > Secrets and variables > Actions
+#   secret   AZURE_STORAGE_CONNECTION_STRING  (Conta de armazenamento > Chaves de acesso > Cadeia de conexão)
+#   variable VITE_API_URL                     (ex.: https://praticom-gateway-xxxxxx.azurewebsites.net/api)
+# Sem o secret, o workflow só testa e gera o build.
+name: Deploy frontend (Azure Storage - site estático)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    env:
+      HAS_STORAGE: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+      - name: Publicar no contêiner $web
+        if: env.HAS_STORAGE == 'true'
+        env:
+          CONN: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+        run: |
+          az storage blob upload-batch -s dist -d '$web' --overwrite --connection-string "$CONN" -o none
+          for remote in market finance; do
+            az storage blob upload -c '$web' -n "$remote/assets/remoteEntry.js" -f "dist/$remote/assets/remoteEntry.js" \
+              --content-cache-control no-cache --overwrite --connection-string "$CONN" -o none
+          done

@@ -4,7 +4,7 @@ Interface do Praticom, um ERP de gestão condominial, dividida em **microfronten
 
 | | Endereço |
 |---|---|
-| 🌐 **Site publicado (Azure Static Web Apps)** | https://SEU-SITE.azurestaticapps.net |
+| 🌐 **Site publicado (Azure Storage, site estático)** | https://SEU-SITE.z1.web.core.windows.net |
 | 🔀 Gateway/BFF (Swagger) | https://SEU-GATEWAY.azurewebsites.net/docs |
 | 🎥 Vídeo de apresentação (YouTube, não listado) | https://youtu.be/SEU-VIDEO |
 | 📦 Repositório do Gateway/BFF | https://github.com/SEU-USUARIO/praticom-gateway-bff |
@@ -29,7 +29,7 @@ praticom-frontend/
 ├── mfe-finance/   # REMOTE "finance": expõe ./FinanceApp (tela original FinancialView do Praticom)
 ├── shared/api.js  # cliente HTTP único (só fala com o Gateway/BFF)
 ├── test/          # testes unitários (api) e de arquitetura
-└── .github/workflows/azure-static-web-apps.yml
+└── .github/workflows/azure-storage.yml
 ```
 
 O build gera **um único site** em `dist/`: o shell fica na raiz, e os remotes em `dist/market/` e `dist/finance/`. O shell carrega `/market/assets/remoteEntry.js` e `/finance/assets/remoteEntry.js`. React e React-DOM são compartilhados, então existe uma só instância.
@@ -58,17 +58,20 @@ npm test
 - **Unitários** (`test/api.test.js`): montagem de URLs e filtros, métodos e corpo das chamadas, tratamento de erros do Gateway.
 - **Arquitetura** (`test/architecture.test.js`): um microfrontend não importa código de outro; nenhuma tela chama `fetch` direto (tudo passa por `shared/api.js`); o front nunca aponta para os microsserviços; o contrato de federação (nome, módulo exposto, `base`) bate entre shell e remotes; React é compartilhado.
 
-## Deploy no Azure Static Web Apps
+## Deploy no Azure (Conta de Armazenamento, site estático)
 
-1. No portal Azure, crie um **Static Web App** no plano Free. Em *Detalhes da implantação*, escolha **Outro** (o workflow já está neste repositório).
-2. Copie o **token de implantação** (Static Web App > *Gerenciar token de implantação*).
-3. No GitHub, abra *Settings > Secrets and variables > Actions* e cadastre:
-   - secret `AZURE_STATIC_WEB_APPS_API_TOKEN` = o token;
+O enunciado permite publicar no Azure Static Web Apps ou numa Conta de Armazenamento. Usamos a **Conta de Armazenamento**, porque a política da assinatura Azure for Students da PUCPR só libera regiões em que o Static Web Apps não existe.
+
+**Automático:** o script [`infra/azure-setup.sh`](https://github.com/JapaBKS/praticom-backend/blob/main/infra/azure-setup.sh), do repositório do backend, cria a conta, ativa o site estático, gera o build com o endereço do Gateway e publica o `dist/` no contêiner `$web`.
+
+**Pelo GitHub Actions** (a cada push na `main`):
+1. No portal, abra a conta de armazenamento, vá em *Segurança + rede > Chaves de acesso* e copie a **cadeia de conexão**.
+2. No GitHub, abra *Settings > Secrets and variables > Actions* e cadastre:
+   - secret `AZURE_STORAGE_CONNECTION_STRING` = a cadeia de conexão;
    - variable `VITE_API_URL` = `https://SEU-GATEWAY.azurewebsites.net/api`.
-4. Faça push na `main` (ou rode o workflow manualmente em *Actions*).
-5. Coloque a URL do site no **topo deste README** e na variável `CORS_ORIGINS` do Gateway.
+3. Faça push. Sem o secret, o workflow só roda os testes e o build.
 
-O arquivo `shell/public/staticwebapp.config.json` faz o *fallback* da SPA e impede o cache do `remoteEntry.js`.
+O `remoteEntry.js` de cada remote é enviado com `Cache-Control: no-cache`, para o shell sempre carregar a versão mais nova.
 
 ## Arquitetura (Arc42)
 
@@ -94,7 +97,7 @@ Regra de negócio que liga os dois: **quando o morador paga uma compra do mercad
 
 ### 2. Restrições
 
-- Nuvem **Azure**: Static Web Apps (frontend), Web App/App Service (Gateway e microsserviços), Azure SQL Database, Azure Service Bus; **MongoDB Atlas** (Free Tier) para o Mercadinho.
+- Nuvem **Azure**: Conta de Armazenamento com site estático (frontend; o Static Web Apps não está disponível nas regiões liberadas pela política da assinatura Azure for Students da PUCPR), Web App/App Service (Gateway e microsserviços), Azure SQL Database, Azure Service Bus; **MongoDB Atlas** (Free Tier) para o Mercadinho.
 - Frontend em **React** com **Module Federation** (microfrontends).
 - Três repositórios públicos: frontend, gateway e backend.
 - O frontend só conversa com o Gateway/BFF, nunca com os microsserviços.
@@ -104,7 +107,7 @@ Regra de negócio que liga os dois: **quando o morador paga uma compra do mercad
 
 ```mermaid
 flowchart LR
-  user([Morador / Síndico]) -->|HTTPS| front[Frontend<br/>Azure Static Web Apps]
+  user([Morador / Síndico]) -->|HTTPS| front[Frontend<br/>Azure Storage - site estático]
   front -->|HTTPS + CORS| gw[API Gateway & BFF<br/>Azure Web App]
   gw -->|x-internal-key| market[Microsserviço Mercadinho<br/>Azure Web App]
   gw -->|x-internal-key| finance[Microsserviço Financeiro<br/>Azure Web App]
@@ -247,7 +250,7 @@ flowchart LR
     r3 -->|Actions| wa3
   end
   subgraph Azure
-    swa[Static Web App<br/>shell + /market + /finance]
+    swa[Storage Account - site estático<br/>shell + /market + /finance]
     wa1[Web App<br/>gateway-bff]
     wa2[Web App<br/>market-service]
     wa3[Web App<br/>finance-service]
@@ -264,7 +267,7 @@ flowchart LR
 
 | Componente | Serviço Azure | Variáveis principais |
 |---|---|---|
-| Frontend | Static Web Apps (Free) | `VITE_API_URL` (no build) |
+| Frontend | Conta de Armazenamento (site estático `$web`) | `VITE_API_URL` (no build) |
 | Gateway/BFF | Web App Node 20 (Linux) | `MARKET_SERVICE_URL`, `FINANCE_SERVICE_URL`, `INTERNAL_API_KEY`, `CORS_ORIGINS` |
 | Mercadinho | Web App Node 20 (Linux) | `MONGODB_URI`, `MONGODB_DB`, `SERVICEBUS_CONNECTION_STRING`, `SERVICEBUS_QUEUE`, `INTERNAL_API_KEY` |
 | Financeiro | Web App Node 20 (Linux) | `SQL_CONNECTION_STRING`, `SERVICEBUS_CONNECTION_STRING`, `SERVICEBUS_QUEUE`, `INTERNAL_API_KEY` |
@@ -289,7 +292,7 @@ flowchart LR
 | D2 | Mercadinho + Financeiro como domínios | Reservas + Financeiro | Menos dependências entre tabelas no código original; o débito em cota já era regra existente |
 | D3 | Hexagonal | Clean/Onion | Separação clara entre portas e adaptadores; fácil testar com adaptadores em memória |
 | D4 | Fila do Service Bus (não tópico) | Chamada HTTP síncrona | Desacopla a venda da disponibilidade do Financeiro |
-| D5 | Remotes publicados no mesmo Static Web App | Um site por remote | Um único deploy e sem CORS para o `remoteEntry.js` |
+| D5 | Remotes publicados no mesmo site estático | Um site por remote | Um único deploy e sem CORS para o `remoteEntry.js` |
 | D6 | Unidades/moradores fixos no BFF | Terceiro microsserviço | Fora do escopo exigido; mantém as telas originais funcionando |
 
 ### 10. Requisitos de qualidade
