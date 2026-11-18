@@ -10,6 +10,8 @@ Interface do Praticom, um ERP de gestão condominial, dividida em **microfronten
 | 📦 Repositório do Gateway/BFF | https://github.com/JapaBKS/praticom-gateway-bff |
 | 📦 Repositório dos microsserviços | https://github.com/JapaBKS/praticom-backend |
 
+> ⏳ **Primeiro acesso:** tudo roda no plano gratuito do Azure, então os apps hibernam e o Azure SQL pausa sozinho quando fica sem uso. Se a primeira carga der erro (por exemplo, *"erro ao carregar dados financeiros"*), aguarde cerca de **1 minuto** e recarregue a página.
+
 **Alunos:** veja [GRUPO.md](GRUPO.md).
 
 ## Funcionalidades
