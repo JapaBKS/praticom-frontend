@@ -6,7 +6,7 @@ Interface do Praticom, um ERP de gestão condominial, dividida em **microfronten
 |---|---|
 | 🌐 **Site publicado (Azure Storage, site estático)** | https://praticomfrontdd687f.z1.web.core.windows.net |
 | 🔀 Gateway/BFF (Swagger) | https://praticom-gateway-dd687f.azurewebsites.net/docs |
-| 🎥 Vídeo de apresentação (YouTube, não listado) | https://youtu.be/SEU-VIDEO |
+| 🎥 Vídeo de apresentação (YouTube, não listado) | https://youtu.be/1TIt9TzYJps |
 | 📦 Repositório do Gateway/BFF | https://github.com/JapaBKS/praticom-gateway-bff |
 | 📦 Repositório dos microsserviços | https://github.com/JapaBKS/praticom-backend |
 
