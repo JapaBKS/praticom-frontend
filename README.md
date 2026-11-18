@@ -46,7 +46,7 @@ cp .env.example .env          # ajuste VITE_API_URL se o gateway não estiver em
 npm start                     # = npm run build && npm run preview
 ```
 
-Acesse http://localhost:3000.
+Acesse `http://localhost:3000`. O site publicado no Azure está em https://praticomfrontdd687f.z1.web.core.windows.net.
 
 > No modo de desenvolvimento do Module Federation, os remotes precisam estar compilados. Por isso o `npm start` faz o build antes de servir.
 > Para abrir um remote sozinho (sem o shell), use `npm run dev -w mfe-market` (porta 3001) ou `npm run dev -w mfe-finance` (porta 3002).
